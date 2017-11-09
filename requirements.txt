@@ -15,4 +15,8 @@ mock
 # ----------------------
 gevent
 gunicorn
-mongoenginepasslibbase64bson
+
+mongoengine
+passlib
+base64
+bson
