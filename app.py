@@ -360,64 +360,67 @@ def claim_victory(username, bet_id):
 
 
 
-@app.route('//bet.vote.victory/<method>/<bet_id>', methods=['GET','POST'])
-def claim_victory(method, bet_id):
+@app.route('/bet.vote.victory/<method>/<bet_id>', methods=['GET','POST'])
+def bet_vote_victory(method, bet_id):
     username = session['username']
     account = Account.objects.get(username = username)
     bet = Contract_type_1.objects.with_id(bet_id)
-    if len(bet.party_multiplayers) == 0:
-        bet.update(add_to_set__accept_verification = username)
-        if bet.victory_claim[0] in party_right:
-            ### win condition
-            if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_left):
-                ### winner actions
-                for user_right in bet.party_right:
-                    bet.update(add_to_set__winner = user_right)
-                    clone = Account.objects().get(username = user_right)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__win_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-                ### loser actions
-                for user_left in bet.party_left:
-                    bet.update(add_to_set__loser = user_left)
-                    clone = Account.objects().get(username = user_left)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__lost_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-            ### verification fail
-            if len(bet.accept_verification_decline) >= 2/3 * len(bet.party_left):
-                for user_right in bet.party_right:
-                    clone = Account.objects().get(username = user_right)
-                    clone.update(pull__other_claiming_winner_bets = bet_id)
-                    bet.victory_claim = []
-                    bet.accept_verification_accept = []
-                    bet.accept_verification_decline = []
-        elif bet.victory_claim[0] in party_left:
-            ### win condition
-            if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_right):
-                ### winner actions
-                for user_left in bet.party_left:
-                    bet.update(add_to_set__winner = user_left)
-                    clone = Account.objects().get(username = user_left)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__win_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-                ### loser actions
-                for user_right in bet.party_right:
-                    bet.update(add_to_set__loser = user_right)
-                    clone = Account.objects().get(username = user_right)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__lost_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-            ### verification fail
-            if len(bet.accept_verification_decline) >= 2/3 * len(bet.party_right):
-                for user_right in bet.party_right:
-                    clone = Account.objects().get(username = user_right)
-                    clone.update(pull__other_claiming_winner_bets = bet_id)
-                    bet.victory_claim = []
-                    bet.accept_verification_accept = []
-                    bet.accept_verification_decline = []
-
+    if method == "accept":
+        if len(bet.party_multiplayers) == 0:
+            bet.update(add_to_set__accept_verification_accept = username)
+    if method == "decline":
+        if len(bet.party_multiplayers) == 0:
+            bet.update(add_to_set__accept_verification_decline = username)
+    if bet.victory_claim[0] in bet.party_right:
+        ### win condition
+        if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_left):
+            ### winner actions
+            for user_right in bet.party_right:
+                bet.update(add_to_set__winner = user_right)
+                clone = Account.objects().get(username = user_right)
+                account.update(pull__active_bet = bet_id)
+                clone.update(add_to_set__win_bet = bet_id)
+                clone.update(add_to_set__bet_notification = bet_id)
+            ### loser actions
+            for user_left in bet.party_left:
+                bet.update(add_to_set__loser = user_left)
+                clone = Account.objects().get(username = user_left)
+                account.update(pull__active_bet = bet_id)
+                clone.update(add_to_set__lost_bet = bet_id)
+                clone.update(add_to_set__bet_notification = bet_id)
+        ### verification fail
+        elif len(bet.accept_verification_decline) >= 2/3 * len(bet.party_left):
+            for user_right in bet.party_right:
+                clone = Account.objects().get(username = user_right)
+                clone.update(pull__other_claiming_winner_bets = bet_id)
+                bet.victory_claim = []
+                bet.accept_verification_accept = []
+                bet.accept_verification_decline = []
+    if bet.victory_claim[0] in bet.party_left:
+        ### win condition
+        if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_right):
+            ### winner actions
+            for user_left in bet.party_left:
+                bet.update(add_to_set__winner = user_left)
+                clone = Account.objects().get(username = user_left)
+                account.update(pull__active_bet = bet_id)
+                clone.update(add_to_set__win_bet = bet_id)
+                clone.update(add_to_set__bet_notification = bet_id)
+            ### loser actions
+            for user_right in bet.party_right:
+                bet.update(add_to_set__loser = user_right)
+                clone = Account.objects().get(username = user_right)
+                account.update(pull__active_bet = bet_id)
+                clone.update(add_to_set__lost_bet = bet_id)
+                clone.update(add_to_set__bet_notification = bet_id)
+        ### verification fail
+    elif len(bet.accept_verification_decline) >= 2/3 * len(bet.party_right):
+            for user_left in bet.party_left:
+                clone = Account.objects().get(username = user_left)
+                clone.update(pull__other_claiming_winner_bets = bet_id)
+                bet.victory_claim = []
+                bet.accept_verification_accept = []
+                bet.accept_verification_decline = []
     url = '/profile/' + username
     return redirect(url)
 
