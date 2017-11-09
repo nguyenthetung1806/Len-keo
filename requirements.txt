@@ -14,9 +14,7 @@ mock
 # Production Server
 # ----------------------
 gevent
-gunicorn
-
-mongoengine
+gunicornmongoengine
 passlib
 base64
 bson
