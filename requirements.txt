@@ -19,5 +19,4 @@ gevent
 gunicorn
 mongoengine
 passlib
-base64
 bson
