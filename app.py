@@ -20,7 +20,7 @@ class Account(Document):
     name = StringField()
     image = StringField()
     password = StringField()
-    email = EmailField()
+    email = StringField()
     phone = StringField()
     #friend system
     friendlist = ListField()
@@ -39,11 +39,13 @@ class Account(Document):
 @app.route('/signup',methods=['GET','POST'])
 def signup():
     if request.method == "GET":
-        return render_template('signup.html')
+        prompt=0
+        return render_template('signup.html',prompt=prompt,usn="",psw="",nm="",eml="")
     elif request.method == "POST":
         form = request.form
         username = form['username']
-        password = sha256_crypt.encrypt(form['password'])
+        password1=form['password']
+        password = sha256_crypt.encrypt(password1)
         name = form['name']
         email = form['email']
         try:
@@ -55,15 +57,16 @@ def signup():
             account.save()
             return redirect('/login')
         else:
-            message = "Tên đăng nhập đã tồn tại, vui lòng chọn tên khác"
-            return render_template('message.html', message = message)
+            prompt=1
+            return render_template('signup.html',prompt=prompt,usn=username,psw=password1,nm=name,eml=email)
 
 
 
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == "GET":
-        return render_template('login.html')
+        prompt=0
+        return render_template('login.html',prompt=prompt,usn="",psw="")
     elif request.method == "POST":
         form = request.form
         username = form['username']
@@ -73,58 +76,66 @@ def login():
         except Account.DoesNotExist:
             account = None
         if account is None:
-            message = "Tài khoản không tồn tại"
-            return render_template('message.html', message = message)
+            prompt=1
+            # message = "Tài khoản không tồn tại"
+            return render_template('login.html', prompt = prompt,usn=username,psw=password)
         else:
             if sha256_crypt.verify(password, account.password) == True:
                 session["username"] = account.username
                 url = "/profile/" + account.username
                 return redirect(url)
             else:
-                message = "Sai mật khẩu"
-                return render_template('message.html', message = message)
+                # message = "Sai mật khẩu"
+                prompt=2
+                return render_template('login.html', prompt = prompt,usn=username,psw=password)
 
 
 
 
 @app.route('/profile/<username_url>', methods=['GET','POST'])
 def profile(username_url):
-    # if session['username'] is None:
-    #     return redicect('/login')
-    # else:
-        username = session['username']
-        account = Account.objects.get(username = username)
-        account_other = Account.objects.get(username = username_url)
-        bets_to_show = []
-        for bet in account_other.active_bet:
-            bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
+    hints = Account.objects()
+    username = session['username']
+    account = Account.objects.get(username = username)
+    account_other = Account.objects.get(username = username_url)
+    bets_to_show = []
 
-        # dùng để nhét các document player tham gia kèo vào player_to_show []
-        users_involved_list = []
-        for bet in bets_to_show:
-            # add tất cả các user account vào 1 list , làm thế này để list ko chứa quá nhiều thông tin thừa
-            clone_user_information(bet, users_involved_list)
+    notification =[]
+    for each in account.pending_bet:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
+    for each in account.other_claiming_winner_bets:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
 
-            #end
-        players_to_show = []
-        for username_each in users_involved_list:
-                players_to_show.append(Account.objects.get(username = username_each))
-        # xong
-        lost_bets_to_show = []
-        for bet in account_other.lost_bet:
-            lost_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
-        win_bets_to_show = []
-        for bet in account_other.win_bet:
-            win_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
-        return render_template('profile.html',  account = account,
-                                                account_other = account_other,
-                                                username = username,
-                                                username_url = username_url,
-                                                bets_to_show = bets_to_show,
-                                                players_to_show = players_to_show,
-                                                lost_bets_to_show = lost_bets_to_show,
-                                                win_bets_to_show = win_bets_to_show
-                                                )
+    for bet in account_other.active_bet:
+        bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
+
+    # dùng để nhét các document player tham gia kèo vào player_to_show []
+    users_involved_list = []
+    for bet in bets_to_show:
+        # add tất cả các user account vào 1 list , làm thế này để list ko chứa quá nhiều thông tin thừa
+        clone_user_information(bet, users_involved_list)
+
+        #end
+    players_to_show = []
+    for username_each in users_involved_list:
+            players_to_show.append(Account.objects.get(username = username_each))
+    # xong
+    lost_bets_to_show = []
+    for bet in account_other.lost_bet:
+        lost_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
+    win_bets_to_show = []
+    for bet in account_other.win_bet:
+        win_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
+    return render_template('profile.html',  account = account,
+                                            account_other = account_other,
+                                            username = username,
+                                            username_url = username_url,
+                                            bets_to_show = bets_to_show,
+                                            players_to_show = players_to_show,
+                                            lost_bets_to_show = lost_bets_to_show,
+                                            win_bets_to_show = win_bets_to_show,
+                                            hints = hints,
+                                            notification = notification)
 
 
 
@@ -133,19 +144,47 @@ def profile(username_url):
 
 @app.route('/edit.profile/<username_url>', methods=['GET','POST'])
 def edit_profile(username_url):
-    account = Account.objects.get(username = username_url)
+    username = session['username']
+    account = Account.objects.get(username = username)
+    account_other = Account.objects.get(username = username_url)
     if request.method == "GET":
-        return render_template('edit_profile.html', account = account)
+        hints = Account.objects()
+        return render_template('edit_profile.html', account = account, hints = hints, account_other = account_other)
     elif request.method == "POST":
         form = request.form
         name = form['name']
         email = form['email']
         phone = form['phone']
-        image = request.files['image']
-        image = b64encode(image.read()).decode("utf-8")
-        account.update(name = name, image = image, email = email, phone = phone)
+        hidd = form['hidd']
+        if hidd == "0":
+            image = request.files['image']
+            image = b64encode(image.read()).decode("utf-8")
+            account.update(name = name, image = image, email = email, phone = phone)
+        elif hidd == "1":
+            background = request.files['background']
+            background = b64encode(background.read()).decode("utf-8")
+            account.update(name = name, background=background, email = email, phone = phone)
+        else:
+            account.update(name = name, email = email, phone = phone)
         url = '/edit.profile/' + username_url
         return redirect(url)
+
+
+
+@app.route('/friend.list/<username_url>', methods=['GET','POST'])
+def friend_list(username_url):
+    username = session['username']
+    account = Account.objects.get(username = username)
+    account_other = Account.objects.get(username = username_url)
+    hints = Account.objects()
+    return render_template('friend_list.html', account = account, hints = hints, account_other = account_other)
+
+
+
+
+
+
+
 
 
 
@@ -239,13 +278,15 @@ def contract_type_1(contract_class):
     username = session['username']
     account = Account.objects.get(username = username)
     friendlist_information = []
+
     for friend in account.friendlist:
         friendlist_information.insert(0, Account.objects().get(username = friend))
     if request.method == "GET":
+        hints = Account.objects()
         if contract_class == "traditional":
-            return render_template('contract_type_1_traditional.html', account = account, friendlist_information = friendlist_information)
+            return render_template('contract_type_1_traditional.html', account = account, friendlist_information = friendlist_information, hints = hints)
         elif contract_class == "multiparty":
-            return render_template('contract_type_1_multiparty.html', account = account, friendlist_information = friendlist_information)
+            return render_template('contract_type_1_multiparty.html', account = account, friendlist_information = friendlist_information, hints = hints)
     elif request.method == "POST":
         form = request.form
         if contract_class == "traditional":
@@ -352,24 +393,32 @@ def claim_victory(username, bet_id):
     username = session['username']
     account = Account.objects.get(username = username)
     bet = Contract_type_1.objects.with_id(bet_id)
-    if len(bet.party_multiplayers) == 0:
-        bet.update(add_to_set__victory_claim = account.username)
-        if username in bet.party_right:
-            for name_0 in bet.party_left:
-                clone = Account.objects().get(username = name_0)
+    if len(bet.victory_claim) == 0:
+        if len(bet.party_multiplayers) == 0:
+            bet.update(add_to_set__victory_claim = account.username)
+            if username in bet.party_right:
+                for name_0 in bet.party_left:
+                    clone = Account.objects().get(username = name_0)
+                    clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
+            if username in bet.party_left:
+                for name_1 in bet.party_right:
+                    clone = Account.objects().get(username = name_1)
+                    clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
+        else:
+            bet.update(add_to_set__victory_claim = {'username' : account.username,
+                                                    'vote_count_accept' : [],
+                                                    'vote_count_decline' : []})
+            for name_2 in bet.party_multiplayers:
+                clone = Account.objects().get(username = name_2)
                 clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
-        if username in bet.party_left:
-            for name_1 in bet.party_right:
-                clone = Account.objects().get(username = name_1)
-                clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
-    else:
-        bet.update(add_to_set__victory_claim = {'username' : account.username,
-                                                'vote_count' : 0})
-        for name_2 in bet.party_left:
-            clone = Account.objects().get(username = name_2)
-            clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
-    url = '/profile/' + username
-    return redirect(url)
+        url = '/profile/' + username
+        return redirect(url)
+    elif len(bet.victory_claim) != 0:
+        url = '/profile/' + username
+        return redirect(url)
+
+
+
 
 
 
@@ -378,93 +427,150 @@ def bet_vote_victory(method, bet_id):
     username = session['username']
     account = Account.objects.get(username = username)
     bet = Contract_type_1.objects.with_id(bet_id)
-    if len(bet.victory_claim) == 0:
+    if method == "accept":
+        bet.update(add_to_set__accept_verification_accept = username)
+        account.update(pull__other_claiming_winner_bets = bet_id)
+        url = '/check/accept/' + bet_id
+        return redirect(url)
+    if method == "decline":
+        bet.update(add_to_set__accept_verification_decline = username)
+        account.update(pull__other_claiming_winner_bets = bet_id)
+        url = '/check/decline/' + bet_id
+        return redirect(url)
+    # elif len(bet.party_multiplayers) != 0:
+
+@app.route('/check/<method>/<bet_id>', methods=['GET','POST'])
+def check_victory(method, bet_id):
+    username = session['username']
+    account = Account.objects.get(username = username)
+    bet = Contract_type_1.objects.with_id(bet_id)
+    if len(bet.party_multiplayers) == 0:
         if method == "accept":
-            if len(bet.party_multiplayers) == 0:
-                bet.update(add_to_set__accept_verification_accept = username)
-        if method == "decline":
-            if len(bet.party_multiplayers) == 0:
-                bet.update(add_to_set__accept_verification_decline = username)
-        if bet.victory_claim[0] in bet.party_right:
-            ### win condition
-            if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_left):
-                ### winner actions
-                for user_right in bet.party_right:
-                    bet.update(add_to_set__winner = user_right)
-                    clone = Account.objects().get(username = user_right)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__win_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-                ### loser actions
-                for user_left in bet.party_left:
-                    bet.update(add_to_set__loser = user_left)
-                    clone = Account.objects().get(username = user_left)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__lost_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-            ### verification fail
-            elif len(bet.accept_verification_decline) >= 2/3 * len(bet.party_left):
-                for user_right in bet.party_right:
-                    clone = Account.objects().get(username = user_right)
-                    clone.update(pull__other_claiming_winner_bets = bet_id)
-                    bet.victory_claim = []
-                    bet.accept_verification_accept = []
-                    bet.accept_verification_decline = []
-        if bet.victory_claim[0] in bet.party_left:
-            ### win condition
-            if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_right):
-                ### winner actions
-                for user_left in bet.party_left:
-                    bet.update(add_to_set__winner = user_left)
-                    clone = Account.objects().get(username = user_left)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__win_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-                ### loser actions
-                for user_right in bet.party_right:
-                    bet.update(add_to_set__loser = user_right)
-                    clone = Account.objects().get(username = user_right)
-                    account.update(pull__active_bet = bet_id)
-                    clone.update(add_to_set__lost_bet = bet_id)
-                    clone.update(add_to_set__bet_notification = bet_id)
-            ### verification fail
-        elif len(bet.accept_verification_decline) >= 2/3 * len(bet.party_right):
-                for user_left in bet.party_left:
-                    clone = Account.objects().get(username = user_left)
-                    clone.update(pull__other_claiming_winner_bets = bet_id)
-                    bet.victory_claim = []
-                    bet.accept_verification_accept = []
-                    bet.accept_verification_decline = []
+            if bet.victory_claim[0] in bet.party_right:
+                if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_left):
+                    for user_right in bet.party_right:
+                        win_action(user_right, account, bet_id, bet)
+                    for user_left in bet.party_left:
+                        lost_action(user_left, account, bet_id, bet)
+                    for pending in bet.party_left_pending:
+                        clone = Account.objects().get(username = pending)
+                        clone.update(pull__pending_bet = bet_id)
+                    for pending in bet.party_right_pending:
+                        clone = Account.objects().get(username = pending)
+                        clone.update(pull__pending_bet = bet_id)
+            elif bet.victory_claim[0] in bet.party_left:
+                if len(bet.accept_verification_accept) >= 2/3 * len(bet.party_right):
+                    for user_left in bet.party_left:
+                        win_action(user_left, account, bet_id, bet)
+                    for user_right in bet.party_right:
+                        lost_action(user_right, account, bet_id, bet)
+                    for pending in bet.party_left_pending:
+                        clone = Account.objects().get(username = pending)
+                        clone.update(pull__pending_bet = bet_id)
+                    for pending in bet.party_right_pending:
+                        clone = Account.objects().get(username = pending)
+                        clone.update(pull__pending_bet = bet_id)
+        elif method == "decline":
+            if bet.victory_claim[0] in bet.party_right:
+                if len(bet.accept_verification_decline) >= 2/3 * len(bet.party_left):
+                    for user_right in bet.party_right:
+                        reject_claim(user_right, bet_id, bet)
+            elif bet.victory_claim[0] in bet.party_left:
+                if len(bet.accept_verification_decline) >= 2/3 * len(bet.party_right):
+                    for user_left in bet.party_left:
+                        reject_claim(user_left, bet_id, bet)
         url = '/profile/' + username
         return redirect(url)
-    elif len(bet.victory_claim) == 0:
-        url = '/profile/' + username
-        return redirect(url)
+    if len(bet.party_multiplayers) != 0:
+        if bet.number_of_winner == "Không giới hạn":
+            number = ( len(bet.party_multiplayers) + len (party_multiplayers_pending))
+            number_of_winner = number
+        else:
+            number_of_winner = int(bet.number_of_winner)
+        if method == "accept":
+            if len(bet.accept_verification_accept) >= 1/2 * len(bet.party_multiplayers):
+                winner = bet.victory_claim
+                bet.update(add_to_set__winner = winner)
+                bet.victory_claim = []
+                bet.accept_verification_accept = []
+                bet.accept_verification_decline = []
+                for name in bet.party_multiplayers:
+                    clone = Account.objects().get(username = name)
+                    clone.update(pull__other_claiming_winner_bets = bet_id)
+            url = '/check.level.2/' + bet_id + '/' + number_of_winner
+            return redirect(url)
+
+        elif method == "decline":
+            if len(bet.accept_verification_decline) >= 1/2 * len(bet.party_multiplayers):
+                bet.victory_claim = []
+                bet.accept_verification_accept = []
+                bet.accept_verification_decline = []
+                for name in bet.party_multiplayers:
+                    clone = Account.objects().get(username = name)
+                    clone.update(pull__other_claiming_winner_bets = bet_id)
+            url = '/profile/' + username
+            return redirect(url)
+
+
+@app.route('/check.level.2/<bet_id>/<number_of_winner>', methods=['GET','POST'])
+def check_victory_2(bet_id, number_of_winner):
+    username = session['username']
+    account = Account.objects.get(username = username)
+    number_of_winner = int(number_of_winner)
+    bet = Contract_type_1.objects.with_id(bet_id)
+    for user in bet.party_multiplayers:
+        if user not in bet.winner:
+            clone = Account.objects().get(username = user)
+            clone.update(pull__active_bet = bet_id)
+            clone.update(add_to_set__lost_bet = bet_id)
+    for user in bet.party_multiplayers_pending:
+            clone = Account.objects().get(username = user)
+            clone.update(pull__pending_bet = bet_id)
+    url = '/profile/' + username
+    return redirect(url)
 
 
 
 
+# def for traditional bet
+def win_action(user_win, account, bet_id, bet):
+    bet.update(add_to_set__winner = user_win)
+    clone = Account.objects().get(username = user_win)
+    clone.update(pull__other_claiming_winner_bets = bet_id)
+    clone.update(pull__active_bet = bet_id)
+    clone.update(add_to_set__win_bet = bet_id)
+    clone.update(add_to_set__bet_notification = bet_id)
 
+def lost_action(user_lost, account, bet_id, bet):
+    bet.update(add_to_set__loser = user_lost)
+    clone = Account.objects().get(username = user_lost)
+    clone.update(pull__other_claiming_winner_bets = bet_id)
+    clone.update(pull__active_bet = bet_id)
+    clone.update(add_to_set__lost_bet = bet_id)
+    clone.update(add_to_set__bet_notification = bet_id)
 
-
-
-
-
-
+def reject_claim(user_reject, bet_id, bet):
+    clone = Account.objects().get(username = user_reject)
+    clone.update(pull__other_claiming_winner_bets = bet_id)
+    bet.victory_claim = []
+    bet.accept_verification_accept = []
+    bet.accept_verification_decline = []
+#
 
 @app.route('/active.bet/<bet_id>', methods=['GET','POST'])
 def active_bet(bet_id):
-        username = session['username']
-        account = Account.objects.get(username = username)
-        bet = Contract_type_1.objects().with_id(bet_id)
-        # nhồi tên
-        users_involved_list = []
-        clone_user_information(bet, users_involved_list)
-        #
-        players_to_show = []
-        for username in users_involved_list:
-            players_to_show.append(Account.objects().get(username = username))
-        return render_template('active_bet.html', account = account, players_to_show = players_to_show, bet = bet)
+    username = session['username']
+    account = Account.objects.get(username = username)
+    bet = Contract_type_1.objects().with_id(bet_id)
+    hints = hints
+    # nhồi tên
+    users_involved_list = []
+    clone_user_information(bet, users_involved_list)
+    #
+    players_to_show = []
+    for username in users_involved_list:
+        players_to_show.append(Account.objects().get(username = username))
+    return render_template('active_bet.html', account = account, players_to_show = players_to_show, bet = bet, hints =hints)
 
 
 
