@@ -57,10 +57,19 @@
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-success p-2 pl-4 ">
 
 
-      <div class="container">
-        <a class="navbar-brand ml-2" href="/profile/{{account.username}}">
-          Lên kèo
-        </a>
+
+
+
+
+
+      <div class="col-md-0 col-xl-2 invisible hidden-lg-down ">
+      </div>
+          <a class="navbar-brand ml-2" href="/profile/{{account.username}}">
+            Lên kèo
+          </a>
+
+
+
 
 
 
@@ -102,12 +111,12 @@
         </ul>
         <ul class="navbar-nav ml-auto col-xs-0 ">
 
-            <li class="nav-item active rounded p-0 mr-4 pt-1">
-              <a class="align-middle" href="/profile/{{account.username}}">
+            <li class="nav-item active rounded p-0 mr-4 ">
+              <a class="text-left" href="/profile/{{account.username}}">
                 {% if account.image is none %}
-              <img class="mx-auto d-block rounded" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="35px" width="35px" alt="">
+              <img class=" rounded" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="35px" width="35px" alt="">
                 {% else %}
-              <img class="mx-auto d-block rounded" src="data:image/*;base64,{{account.image}}" height="35px" width="35px" alt="">
+              <img class=" rounded" src="data:image/*;base64,{{account.image}}" height="35px" width="35px" alt="">
                 {% endif %}
               </a>
             </li>
@@ -272,17 +281,15 @@
           <li class=""></li>
 
           </ul >
-            <div class="invisible ">
-              1234566627
-            </div>
+            <div class=" clearfix invisible hidden-lg-down ">
+              12345666271233333333333333333333
 
           </ul>
-        </div>
         </div>
     </nav>
     <!-- nav _end -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-success p-2 pl-4 invisible ">
-      <a class="navbar-brand ml-2" href="http://127.0.0.1:5000/">
+      <a class="navbar-brand ml-2" >
         Lên kèo
       </a>
     </nav>
