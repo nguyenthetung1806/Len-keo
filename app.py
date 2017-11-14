@@ -4,6 +4,7 @@ import mlab
 from base64 import b64encode
 from bson.objectid import ObjectId
 from mongoengine import *
+import datetime
 
 
 app = Flask(__name__)
@@ -195,6 +196,7 @@ def friend_request_method(method, username_url):
     account = Account.objects.get(username = username)
     account_other = Account.objects.get(username = username_url)
     url = '/profile/' + username_url
+    url_self = '/friend.list/' + username
     if method == "delete.friend":
         account.update(pull__friendlist = account_other.username)
         account_other.update(pull__friendlist = account.username)
@@ -208,7 +210,7 @@ def friend_request_method(method, username_url):
         account.update(pull__friend_accept_pending = account_other.username)
         account_other.update(add_to_set__friendlist = account.username)
         account_other.update(pull__friend_request_sent = account.username)
-        return redirect(url)
+        return redirect(url_self)
     elif method == "send.request":
         account.update(add_to_set__friend_request_sent = account_other.username)
         account_other.update(add_to_set__friend_accept_pending = account.username)
@@ -239,6 +241,12 @@ class Contract_type_1(Document):
     party_multiplayers = ListField()
     party_multiplayers_pending = ListField()####
     number_of_winner = StringField()
+    #times
+    dates = StringField()
+    times = StringField()
+    month = StringField()
+    day = StringField()
+    year = StringField()
     #
     spectator = ListField()
     punishment = StringField()
@@ -297,12 +305,22 @@ def contract_type_1(contract_class):
             party_left_pending = form.getlist('party_left')
             spectator = form.getlist('spectator')
             punishment = form['punishment']
+            dates = datetime.datetime.now().isoformat()
+            times = form['times']
+            month = form['month']
+            year = form['year']
+            day = form['day']
             contract_type_1 = Contract_type_1(  contract_maker = contract_maker,
                                                 contract_term = contract_term,
                                                 party_left_pending = party_left_pending,
                                                 party_right_pending = party_right_pending,
                                                 spectator = spectator,
-                                                punishment = punishment)
+                                                punishment = punishment,
+                                                dates = dates,
+                                                times = times,
+                                                month = month,
+                                                day = day,
+                                                year = year)
             contract_type_1.save()
             if username in party_left_pending:
                 contract_type_1.update(pull__party_left_pending = username)
@@ -574,15 +592,16 @@ def active_bet(bet_id):
 
 
 
-@app.route('/comment/<bet_id>', methods=['GET','POST'])
-def comments(bet_id):
+@app.route('/comment/<bet_id>/<username_url>', methods=['GET','POST'])
+def comments(bet_id, username_url):
     username = session['username']
+    url =  '/profile/' + username_url
     bet = Contract_type_1.objects.with_id(bet_id)
     form = request.form
     comment = form['comment']
     bet.update(add_to_set__comments = {'username': username,
                                         'comment': comment})
-    return ""
+    return redirect(url)
 
 
 # class Contract_type_1(Document):

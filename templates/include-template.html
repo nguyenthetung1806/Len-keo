@@ -11,37 +11,68 @@
     <link href="https://fonts.googleapis.com/css?family=Pacifico" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Acme" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/bootstrap-datepicker.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap-datepicker.min.js"></script>
     <!-- import links _end -->
 
     <!-- search_friend -->
     <script type="text/javascript">
 
-      // Kích hoạt sự kiện click của button:
-      function _click(){
-        var but = document.getElementById('dropdownMenuButton');
-        but.click();
+      function _focus(){
+        var check = document.getElementById('check_but');
+        check.value = "1";
       }
 
       function _search(){
-
+        var check = document.getElementById('check_but');
+        if (check.value == "1") {
+          var but = document.getElementById('dropdownMenuButton');
+          but.click();
+          check.value = "0";
+        }
         // Tìm kiếm phần tử:
-        var input, filter, ul, li, a, i;
+        var input, filter, ul, li, a, i, p;
         input = document.getElementById('search_input');
         filter = input.value.toUpperCase();
         ul = document.getElementById("search_hint");
         li = ul.getElementsByTagName('li');
 
         // Xóa toàn bộ gợi ý không phù hợp
+        var limit = document.getElementById('limit');
+        var nonresult = document.getElementById('result');
         for (i = 0; i < li.length; i++) {
           a = li[i].getElementsByTagName("a")[0];
-          if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
-            li[i].style.display = "";
+          p = a.getElementsByTagName("p")[0];
+          if (p.innerHTML.toUpperCase().indexOf(filter) > -1) {
+            nonresult.value = "1";
+            var limit1 = Number(limit.value);
+            if (limit1 < 10) {
+              li[i].style.display = "";
+              limit1++;
+              limit.value = limit1.toString();
+            }
+            else {
+              li[i].style.display = "none";
+            }
+
           }
           else {
             li[i].style.display = "none";
           }
         }
+        limit.value = "0";
+        var no_result = document.getElementById('no_result');
+        if (nonresult.value == "1") {
+            no_result.style.display = "none";
+        }
+        else {
+            no_result.style.display = "";
+        }
+        nonresult.value = "0";
       }
+
     </script>
     <!-- search_friend_end -->
 
@@ -55,12 +86,6 @@
 
     <!-- nav -->
     <nav class="navbar fixed-top navbar-expand-xl navbar-dark bg-success p-2 pl-4 ">
-
-
-
-
-
-
 
       <div class="col-md-0 col-xl-2 invisible hidden-lg-down ">
       </div>
@@ -86,26 +111,30 @@
             <form class="form-inline my-2 my-lg-0 mr-auto">
                 <div class="dropdown">
                   <button class="dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" style="display: none;" aria-expanded="false"></button>
-                  <input class="form-control mr-sm-2" id="search_input" onfocus="_click()" onkeyup="_search()" type="search" placeholder="Search" aria-label="Search">
+                  <input class="form-control mr-sm-2" id="search_input" onfocus="_focus()" onkeyup="_search()" type="search" placeholder="Search" aria-label="Search">
                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <ul id="search_hint" class="p-0">
                       {% for hint in hints %}
-                        <li class="dropdown-item" class="pl-3 pr-3"><a href="/profile/{{hint['username']}}" ><div class="text-dark text-left">
+                        <li class="dropdown-item" class="pl-3 pr-3"><a href="/profile/{{hint['username']}}" ><div class="row text-dark text-left">
+                          <div class="col-md-1">
                           {% if hint.image is none %}
                         <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
                           {% else %}
                         <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                           {% endif %}
-
-                          {{hint['name']}}</div></a></li>
+                        </div>
+                        <div class="col-md-8">
+                          <p>{{hint['name']}}</p></div></div></a></li>
                       {% endfor %}
                     </ul>
+                    <p class="dropdown-item pl-3 pr-3" id="no_result">Không tìm thấy</p>
                   </div>
                 </div>
+                <input type="hidden" id="check_but" name="" value="1">
+                <input type="hidden" id="limit" name="" value="0">
+                <input type="hidden" id="result" name="" value="0">
 
-
-              <button class="btn btn-outline-light my-2 my-sm-0 font-weight-bold" type="submit">
-                <i class="fa fa-search" aria-hidden="true"></i></button>
+              <button class="btn btn-outline-light my-2 my-sm-0 font-weight-bold" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
             </form>
           </li>
         </ul>
