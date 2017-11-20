@@ -95,7 +95,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
             {% endif %}
           {% else %}
           <!-- collumn thẻ bet -->
-          <div class=" pl-3 pr-3 pb-3 pt-1" id="met_vl">
+          <div class=" pl-4 pr-4 pb-3 pt-1" id="met_vl">
             {% for bet in bets_to_show %}
             {% if account.username in bet.party_left or
                   account.username in bet.party_right or
@@ -220,13 +220,18 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
             <!-- card mid -->
             <div class="card-body border border-secondary border-right-0 border-left-0 mr-4 ml-4 mb-1 p-0 pt-1 pb-1">
               <p class="card-text text-dark mb-0">
-                {{  bet.contract_term }}
+                <span class="font-weight-bold text-success">
+                  Điều khoản:
+                </span>
+                <span style="font-size: 14px; font-weight:bold;">
+                  {{  bet.contract_term }}
+                </span>
               </p>
               <p class="card-text text-dark mb-0">
                 <span class="font-weight-bold text-danger">
-                  Hình phạt cho bên thua:
+                  Giao ước:
                 </span>
-                <span>
+                <span style="font-size: 14px; font-weight:bold;">
                   {{  bet.punishment }}
                 </span>
               </p>
