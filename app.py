@@ -33,8 +33,11 @@ def signup():
             account = Account(name=name, password=password, username=username, email=email)
             account.save()
             account.update(add_to_set__friendlist = 'nguyenthetung1806')
+            account.update(add_to_set__friendlist = 'QuonLe')
             clone = Account.objects().get(username = 'nguyenthetung1806')
             clone.update(add_to_set__friendlist = 'username')
+            clone0 = Account.objects().get(username = 'QuonLe')
+            clone0.update(add_to_set__friendlist = 'username')
             return redirect('/login')
         else:
             prompt=1
