@@ -24,8 +24,8 @@
           border-dark
           bg-dark
           {% else %}
-          border-success
-          bg-light
+          border-secondary
+          bg-secondary
           {% endif %}
           p-0">
         {% if account_other.username == account.username or account_other.username in account.friendlist %}
@@ -34,7 +34,7 @@
               {% if account_other.username == account.username %}
               text-light
               {% else %}
-              text-success
+              text-light
               {% endif %}
              font-size-lg m-0 mr-4">Các kèo đang hoạt động</h3>
           </div>
@@ -191,8 +191,8 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
               <!-- danh sách người tham gia end_ -->
               <!-- danh sách pending -->
               {% if bet.party_right_pending|length != 0 or bet.party_left_pending|length != 0 or bet.party_multiplayers_pending|length != 0 %}
-                <p style="font-size: 15px" class=" m-0 p-0 ml-3 ">
-                  <span class="text-secondary">Chờ xác nhận: </span>
+                <p style="font-size: 13px" class=" m-0 p-0 ml-3 ">
+                  <span class="text-secondary font-weight-bold">Chờ xác nhận: </span>
                 {% for player in bet.party_right_pending or bet.party_left_pending or bet.party_multiplayers_pending %}
                   {% for player_render in players_to_show %}
                     {% if player_render.username == player %}
@@ -203,7 +203,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                       {% else %}
                       <img class=" rounded-circle" src="data:image/*;base64,{{player_render.image}}" height="20px" width="20px" alt="">
                       {% endif %}
-                      {{ player_render.name }}
+                      <span class="text-secondary">{{ player_render.name }}</span>
                     </a>
                   </span>
                 <span>
@@ -233,22 +233,22 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
             </div>
             <!-- card mid end_ -->
             <!-- card bot -->
-            <div class="card-body text-left m-0 p-0 pl-4 pb-2">
-              <a class="text-right text-secondary" href="/active.bet/{{bet.id}}">
-                <i class="fa fa-info" aria-hidden="true"></i>
+            <div style="font-size:15px;"class="card-body text-left m-0 p-0 pl-4 pb-0 font-weight-bold">
+              <a class="text-right text-secondary font-weight-bold" href="/active.bet/{{bet.id}}">
+                <i class="fa fa-info " aria-hidden="true"></i>
                 Chi tiết
               </a>
               <span style="display:inline-block; width: YOURWIDTH;"></span>
               <span style="display:inline-block; width: YOURWIDTH;"></span>
               <!-- claim_victory logic -->
-              {% if username in bet.party_left or username in bet.party_right or username in bet.party_multiplayers %}
+              {% if account.username in bet.party_left or account.username in bet.party_right or account.username in bet.party_multiplayers %}
                 {% if bet.party_multiplayers|length == 0 %}
                   {% if bet.party_left_pending|length * 2 <= bet.party_left|length and bet.party_right_pending|length * 2 <= bet.party_right|length %}
                     {% if bet.victory_claim|length == 0 %}
               <span data-toggle="tooltip" data-placement="top" title="Tuyên bố với những người chơi khác là bạn đã thắng cuộc">
-                <a class="text-success" href="/claim.victory/{{account.username}}/{{bet.id}}">
-                  <i  class="fa fa-trophy" aria-hidden="true"></i>
-                   Thắng cuộc
+                <a class="text-success font-weight-bold" href="/claim.victory/{{account.username}}/{{bet.id}}">
+                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
+                   Tuyên bố thắng cuộc
                  </a>
               </span>
                     {% else %}
@@ -267,8 +267,8 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                     {% if bet.victory_claim|length == 0 %}
               <span data-toggle="tooltip" data-placement="top" title="Tuyên bố với những người chơi khác là bạn đã thắng cuộc">
                 <a class="text-success" href="/claim.victory/{{account.username}}/{{bet.id}}">
-                  <i  class="fa fa-trophy" aria-hidden="true">
-                  </i> Thắng cuộc ( {{ bet.winner|length }} / {{ bet.number_of_winner }} )
+                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
+                </i> Tuyên bố thắng cuộc ( {{ bet.winner|length }} / {{ bet.number_of_winner }} )
                 </a>
               </span>
                     {% else %}

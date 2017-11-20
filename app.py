@@ -168,13 +168,30 @@ def clone_user_information (bet, users_involved_list):
         if comment['username'] not in users_involved_list:
             users_involved_list.append(comment['username'])
 
+
+@app.route('/facepage/<username_url>', methods=['GET','POST'])
+def facepage(username_url):
+    username = session['username']
+    account = Account.objects.get(username = username)
+    account_other = Account.objects.get(username = username_url)
+    hints = Account.objects()
+    notification =[]
+    for each in account.pending_bet:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
+    for each in account.other_claiming_winner_bets:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
+    return render_template('facepage.html',     account = account,
+                                                hints = hints,
+                                                account_other = account_other,
+                                                notification = notification)
+
 @app.route('/lost.bet.unearned/<username_url>', methods=['GET','POST'])
 def unearned_lost_bet(username_url):
     username = session['username']
     account = Account.objects.get(username = username)
     account_other = Account.objects.get(username = username_url)
-    notification =[]
     hints = Account.objects()
+    notification =[]
     for each in account.pending_bet:
         notification.insert(0, Contract_type_1.objects().with_id(each))
     for each in account.other_claiming_winner_bets:
