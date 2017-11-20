@@ -32,6 +32,9 @@ def signup():
         if account is None:
             account = Account(name=name, password=password, username=username, email=email)
             account.save()
+            account.update(add_to_set__friendlist = 'nguyenthetung1806')
+            clone = Account.objects().get(username = 'nguyenthetung1806')
+            clone.update(add_to_set__friendlist = 'username')
             return redirect('/login')
         else:
             prompt=1
