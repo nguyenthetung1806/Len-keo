@@ -1,10 +1,10 @@
 import mongoengine
 
-#mongodb://<dbuser>:<dbpassword>@ds241055.mlab.com:41055/projectlenkeo
+#mongodb://<dbuser>:<dbpassword>@ds117136.mlab.com:17136/lincognito
 
-host = "ds241055.mlab.com"
-port = 41055
-db_name = "projectlenkeo"
+host = "ds117136.mlab.com"
+port = 17136
+db_name = "lincognito"
 user_name = "admin"
 password = "admin"
 

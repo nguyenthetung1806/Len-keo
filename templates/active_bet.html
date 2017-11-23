@@ -11,7 +11,14 @@
     <div class="container mt-3 p-0">
       <div class="row col-lg-12 col-xl-11 mr-1 ml-1 ">
 
-
+        {% if account.username in bet.party_left or
+              account.username in bet.party_right or
+              account.username in bet.party_left_pending or
+              account.username in bet.party_right_pending or
+              account.username in bet.party_multiplayers or
+              account.username in bet.party_multiplayers_pending or
+              account.username in bet.spectator or
+              bet.control == 'out of date' %}
           <!-- collumn thẻ bet -->
           <div class="col-lg-12 col-xl-8 pl-3 pr-3 pb-3 pt-1 mx-auto d-block" id="met_vl">
             <div class="card m-0 p-0 mb-4 border-secondary rounded-right" >
@@ -307,8 +314,17 @@
           </div>
           <!--card bình luận end_ -->
         </div>
+{% else%}
 
+<div class="container">
+  <div class="text-center font-weight-bold">
+    <br><br><br>
+    <h4 class="text-white">Bạn không đủ quyền xem kèo này</h4>
 
+  </div>
+
+</div>
+{% endif %}
 
 
     </div>

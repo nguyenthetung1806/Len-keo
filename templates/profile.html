@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>
-      {% if username_url == username %}
+      {% if account.username == account_other.username %}
       {{ account.name }}
       {% else %}
       {{ account_other.name }}
@@ -28,7 +28,6 @@
           bg-secondary
           {% endif %}
           p-0">
-        {% if account_other.username == account.username or account_other.username in account.friendlist %}
           <div class="font-weight-bold text-white m-0 text-right mt-2">
             <h3 class="Montserrat font-weight-bold
               {% if account_other.username == account.username %}
@@ -43,52 +42,25 @@
 
         <!-- 1 display bet -->
           {% if bets_to_show|length == 0 %}
-            {% if username == username_url %}
+            {% if account.username == account_other.username %}
           <br><br>
           <div class="text-center">
             <p class="mb-1 text-white">Hiện tại bạn không có kèo nào đang hoạt động.</p>
             <a class="text-success" href="/contract.type.1/traditional">
-              <h5 class="btn btn-lg font-weight-bold mb-0">Lên kèo????</h5>
+              <h3 style="font-size:30px;"class="btn btn-lg font-weight-bold mb-0">Lên kèo????</h3>
             </a>
           </div>
 
 <!-- search bar -->
-{% if account.friendlist|length == 0%}
-<div class="container col-9 text-white text-center">
-Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài người bạn ....
-<div class="dropdown">
-  <button class="dropdown-toggle" type="button" id="dropdownMenuButtonSpecial" data-toggle="dropdown" aria-haspopup="true" style="display: none;" aria-expanded="false"></button>
-  <input class="form-control mr-sm-2" id="search_input" onfocus="_focus()" onkeyup="_search()" type="search" placeholder="Nhập để tìm kiếm" aria-label="Search">
-  <div class="dropdown-menu" aria-labelledby="dropdownMenuButtonSpecial">
-    <ul id="search_hint" class="p-0">
-    {% for hint in hints %}
-      <li class="dropdown-item" class="pl-3 pr-3">
-        <a href="/profile/{{hint['username']}}" ><div class="row text-dark text-left">
-        <div class="col-md-1">
-      {% if hint.image is none %}
-        <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
-      {% else %}
-        <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
-      {% endif %}
-        </div>
-        <div class="col-md-8">
-          <p>{{hint['name']}}</p></div>
-        </div></a>
-      </li>
-    {% endfor %}
-    </ul>
-    <p class="dropdown-item pl-3 pr-3" id="no_result">Không tìm thấy</p>
-  </div>
-</div>
-</div>
-{% endif %}
+
 <!-- search bar -->
             {% else %}
           <br><br>
           <div class="">
+            <br><br>
             <div class="card m-0 p-0 mb-4" >
               <div class="card-body text-dark p-2 pb-0 mb-0 text-center">
-                <p class="mb-1">Hiện tại người dùng này không có kèo nào đang hoạt động.</p>
+                <p class="mb-1 font-weight-bold">Hiện tại người dùng này không có kèo nào đang hoạt động.</p>
               </div>
             </div>
           </div>
@@ -103,7 +75,8 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                   account.username in bet.party_right_pending or
                   account.username in bet.party_multiplayers or
                   account.username in bet.party_multiplayers_pending or
-                  account.username in bet.spectator %}
+                  account.username in bet.spectator or
+                  bet.control == 'out of date' %}
             <div class="card m-0 p-0 mb-4 border-secondary rounded-right" >
               <!-- card top -->
               <!-- bet name -->
@@ -130,7 +103,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                   <!-- các cửa -->
                   <span class="text-dark font-weight-bold">Cửa trên:</span>
                   {% for player_right in bet.party_right %}
-                    {% for player_render in players_to_show %}
+                    {% for player_render in hints %}
                       {% if player_render.username == player_right %}
                     <span>
                       <a href="/profile/{{ player_right }}">
@@ -147,7 +120,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                   {% endfor %}
                   <span class="text-dark font-weight-bold">Cửa dưới:</span>
                   {% for player_left in bet.party_left %}
-                    {% for player_render in players_to_show %}
+                    {% for player_render in hints %}
                       {% if player_render.username == player_left %}
                     <span>
                       <a href="/profile/{{ player_left }}">
@@ -170,7 +143,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                 <p style="font-size: 15px" class=" m-0 p-0 ml-3 ">
                   <span class="text-dark font-weight-bold">Các bên tham gia:</span>
                 {% for player_multiparty in bet.party_multiplayers %}
-                  {% for player_render in players_to_show %}
+                  {% for player_render in hints %}
                     {% if player_render.username == player_multiparty %}
                   <span>
                     <a href="/profile/{{ player_multiparty }}">
@@ -194,16 +167,16 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
                 <p style="font-size: 13px" class=" m-0 p-0 ml-3 ">
                   <span class="text-secondary font-weight-bold">Chờ xác nhận: </span>
                 {% for player in bet.party_right_pending or bet.party_left_pending or bet.party_multiplayers_pending %}
-                  {% for player_render in players_to_show %}
-                    {% if player_render.username == player %}
+                  {% for hint in hints %}
+                    {% if hint.username == player %}
                   <span>
                     <a href="/profile/{{ player }}">
-                      {% if player_render.image is none %}
+                      {% if hint.image is none %}
                       <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
                       {% else %}
-                      <img class=" rounded-circle" src="data:image/*;base64,{{player_render.image}}" height="20px" width="20px" alt="">
+                      <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                       {% endif %}
-                      <span class="text-secondary">{{ player_render.name }}</span>
+                      <span class="text-secondary">{{ hint.name }}</span>
                     </a>
                   </span>
                 <span>
@@ -301,7 +274,7 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
               {% if bet.comments|length != 0 %}
               <div class="border border-muted rounded mr-3 ml-4 mb-1 pb-1 pt-2 bg-white text-dark">
                 {% for player_comment in bet.comments %}
-                  {% for player_render in players_to_show %}
+                  {% for player_render in hints %}
                     {% if player_render.username == player_comment['username'] %}
                 <div class="row m-0 p-0 pl-2 pr-1">
                   <div class="col-1 p-0 mt-1">
@@ -344,19 +317,11 @@ Nhưng trước hết, hãy bắt đầu bằng việc tìm kiếm một vài ng
       </div>
       <!-- collumn thẻ bet end_ -->
 
-      {% else %}
-      <br><br><br><br>
-      <div class="text-center font-weight-bold text-dark">
-        Bạn chưa kết bạn với người này
-      </div>
-      {% endif %}
-      </div>
       <!--One of two columns end_-->
 
       <!--One of two columns-->
 
       <!--One of two columns end_-->
-
 
 
     </div>

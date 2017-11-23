@@ -12,15 +12,22 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
     <script type="text/javascript">
       function check_pass(){
-        var check = document.getElementById('password_check').value;
-        var pass = document.getElementById('password').value;
-        if (check != pass) {
-          alert("Mật khẩu xác nhận không trùng khớp");
+        var name = document.getElementById('_name');
+        if (name.value.length < 6 || name.value.length > 18) {
+          alert("Tên người dùng chỉ được phép dài từ 6 đến 12 kí tự!");
           return false;
         }
         else {
+          var check = document.getElementById('password_check').value;
+          var pass = document.getElementById('password').value;
+          if (check != pass) {
+            alert("Mật khẩu xác nhận không trùng khớp");
+            return false;
+          }
+          else {
 
-          return true;
+            return true;
+          }
         }
       }
     </script>
@@ -125,7 +132,7 @@
 
               <div class="form-group font-weight-bold text-success">
                 <label class="m-0" for="">Tên người dùng</label>
-                <input class="form-control" type="text" name="name" value="{{nm}}" required>
+                <input class="form-control" id="_name" type="text" name="name" value="{{nm}}" required>
               </div>
 
               <div class="d-flex justify-content-end align-items-center mt-4 ">

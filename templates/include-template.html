@@ -78,7 +78,7 @@
 
   <body style="background-color:#292d46;">
 
-    <img style="z-index:-1;" class="fixed-top w-100 h-80" src="https://i.imgur.com/Y4NGY0J.jpg" alt="Totoro Wallpaper Hd" >
+    <img style="z-index:-1;" class="fixed-top w-100 h-80" src="https://www.pixelstalk.net/wp-content/uploads/2016/04/Wonderful-totoro-wallpaper-HD-backgounds.jpg" alt="Totoro Wallpaper Hd" >
 
     <!-- nav -->
     <nav class="navbar fixed-top navbar-expand-xl navbar-dark bg-dark p-0 ">
@@ -156,8 +156,8 @@
                      " aria-hidden="true"></i></h5>
               </button>
               <div class="dropdown-menu dropdown-menu-right rounded pb-1 pt-1" >
-                {% if account.friend_accept_pending|length == 0 and account.friend_accepted|length == 0 %}
-                  <div class="text-dark text-right pr-4 col-12">Không có lời mời nào</div>
+                {% if account.friend_accepted|length == 0 %}
+                  <div class="text-dark text-right pr-4 col-12">Không có thông báo nào</div>
                 {% else %}
 
 
@@ -174,8 +174,8 @@
                       <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="15px" width="15px" alt="">
                         {% endif %}
                         {{ hint.name }}</span>
-                        <p class="m-0">đã chấp nhận lời mời kết bạn của bạn
-                        <span class="text-primary">Xem trang</span></p></a>
+                        <p class="m-0">đã theo dõi bạn.
+                        <span class="text-primary">Xem trang cá nhân</span></p></a>
                     </span>
                   </div>
                   <div class=" col-2 p-0 text-left">
@@ -186,33 +186,6 @@
                     {% endif %}
                   {% endfor %}
                 {% endfor %}
-
-
-                  {% for request in account.friend_accept_pending %}
-                    {% for hint in hints %}
-                      {% if request == hint.username %}
-                  <div class="row">
-                    <div class="col-10">
-                      <span>
-                        <a class="dropdown-item pb-2" href="/profile/{{hint.username}}"> <span class=" font-weight-bold text-success">
-                          {% if hint.image is none %}
-                        <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="15px" width="15px" alt="">
-                          {% else %}
-                        <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="15px" width="15px" alt="">
-                          {% endif %}
-                          {{ hint.name }}</span>
-                          <p class="m-0">đã gửi lời mời kết bạn.
-                          <span class="text-primary">Xem trang</span></p></a>
-                      </span>
-                    </div>
-                    <div class=" col-2 p-0 text-left">
-                      <a class="text-lg font-weight-bold text-success mr-1" href="/friend.request/accept/{{request}}"><i class="fa fa-check" aria-hidden="true"></i></a>
-                      <a class="text-lg font-weight-bold text-danger" href="/friend.request/decline/{{request}}"><i class="fa fa-times" aria-hidden="true"></i></a>
-                    </div>
-                    </div>
-                      {% endif %}
-                    {% endfor %}
-                  {% endfor %}
                 {% endif %}
                     <div class="dropdown-divider m-0"></div>
                     <a class="dropdown-item text-right font-weight-bold text-dark bg-muted" href="/friend.list/{{account.username}}">Xem chi tiết</a>

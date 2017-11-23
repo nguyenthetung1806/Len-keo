@@ -150,44 +150,62 @@
 
 
 
-              {% for bet in bets_to_show %}
-                {% if account.username in bet.party_left or
-                      account.username in bet.party_right or
-                      account.username in bet.party_left_pending or
-                      account.username in bet.party_right_pending or
-                      account.username in bet.party_multiplayers or
-                      account.username in bet.party_multiplayers_pending or
-                      account.username in bet.spectator %}
 
-                {% for hint in hints %}
-                  {% if bet.contract_maker[0] == hint.username %}
-              <div class="row">
-                <div class="col-10">
 
-                  <a class=" text-success font-weight-bold dropdown-item pb-0" href="/active.bet/{{bet.id}}">{{bet.contract_name}}
 
-                  <p class=" m-0 text-dark" style="font-size: 12px;"><span class="font-weight-bold">Tạo bởi: </span>
-                    <span>
-                    {% if hint.image is none %}
-                  <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
-                    {% else %}
-                  <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
-                    {% endif %}
-                    {{ hint.name }}
-                  </p></span></a>
 
-                </div>
-                  <div class=" col-1 p-0 pt-2 text-left">
-                    <a data-toggle="tooltip" data-placement="top" title="Chi tiết" class="col m-0 p-0 btn btn-success btn-sm font-weight-bold text-success mr-1" href="/active.bet/{{ bet.id}}">
-                      <i  class="text-white fa fa-sign-in" aria-hidden="true"></i></a>
-                </div>
-              </div>
-                  {% endif %}
-                {% endfor %}
+                  <table class="table">
+                    <thead class="thead-dark ">
+                      <tr  class="row p-1 pb-0">
+                        <th style="font-size: 15px;" class="align-middle col-md-5 m-0 p-1 text-center">Tên kèo</th>
+                        <th style="font-size: 15px;" class="align-middle col-md-4 m-0 p-1 text-center">Người tạo</th>
+                        <th style="font-size: 15px;" class="align-middle col-md-3 m-0 p-1 text-center">Chi tiết</th>
+                      </tr>
+                    </thead>
 
-                {% endif %}
-              {% endfor %}
+                    <tbody>
+
+                      {% for bet in bets_to_show %}
+                      {% for hint in hints %}
+                      {% if account.username in bet.party_left or
+                            account.username in bet.party_right or
+                            account.username in bet.party_left_pending or
+                            account.username in bet.party_right_pending or
+                            account.username in bet.party_multiplayers or
+                            account.username in bet.party_multiplayers_pending or
+                            account.username in bet.spectator or
+                            bet.control == 'out of date' %}
+                        {% if bet.contract_maker[0] == hint.username %}
+                        <tr class="row p-1 pt-0">
+                          <td style="font-size: 15px;" class="align-middle col-md-5 m-0 p-1 text-center font-weight-bold">
+                            <a class=" text-success font-weight-bold dropdown-item pb-0" href="/active.bet/{{bet.id}}">{{bet.contract_name}}</a>
+                          </td>
+                          <td style="font-size: 15px;" class="align-middle col-md-4 m-0 p-1 text-center font-weight-bold">
+                            <a class=" text-success font-weight-bold dropdown-item pb-0" href="/profile/{{bet.contract_maker}}">
+                            <p class=" m-0 text-dark" style="font-size: 12px;"><span class="font-weight-bold"></span>
+                              <span>
+                              {% if hint.image is none %}
+                            <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
+                              {% else %}
+                            <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
+                              {% endif %}
+                              {{ hint.name }}
+                            </p></span></a>
+                          </td>
+                          <td class="align-middle col-md-3 m-0 p-1 text-center font-weight-bold">
+
+                              <a data-toggle="tooltip" data-placement="top" title="Chi tiết" class="col-6 m-0 p-0 btn btn-success btn-sm font-weight-bold text-success mr-1" href="/active.bet/{{ bet.id}}">
+                                <i  class="text-white fa fa-sign-in" aria-hidden="true"></i></a>
+
+                            </td>
+                        </tr>
+                      {% endif %}
+                      {% endif %}
+                      {% endfor%}
+                    {% endfor %}
+                    </tbody>
           </div>
+
         </div>
         <!-- display end_ -->
         <!-- Cơ chế -->

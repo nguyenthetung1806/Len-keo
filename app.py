@@ -32,12 +32,6 @@ def signup():
         if account is None:
             account = Account(name=name, password=password, username=username, email=email)
             account.save()
-            account.update(add_to_set__friendlist = 'nguyenthetung1806')
-            account.update(add_to_set__friendlist = 'QuonLe')
-            clone = Account.objects().get(username = 'nguyenthetung1806')
-            clone.update(add_to_set__friendlist = 'username')
-            clone0 = Account.objects().get(username = 'QuonLe')
-            clone0.update(add_to_set__friendlist = 'username')
             return redirect('/login')
         else:
             prompt=1
@@ -79,8 +73,6 @@ class Account(Document):
     phone = StringField()
     #friend system
     friendlist = ListField()
-    friend_request_sent = ListField()
-    friend_accept_pending = ListField()
     friend_accepted = ListField()
     #
     #bet system
@@ -108,10 +100,7 @@ class Contract_type_1(Document):
     number_of_winner = StringField()
     #times
     dates = StringField()
-    times = StringField()
-    month = StringField()
-    day = StringField()
-    year = StringField()
+    control = StringField()
     #
     spectator = ListField()
     punishment = StringField()
@@ -146,33 +135,14 @@ def reject_claim(user_reject, bet_id, bet):
     bet.accept_verification_accept = []
     bet.accept_verification_decline = []
 #
-def call_element_include(notification, account, users_involved_list, account_other, bets_to_show):
+def call_element_include(notification, account, account_other, bets_to_show):
     for each in account.pending_bet:
         notification.insert(0, Contract_type_1.objects().with_id(each))
     for each in account.other_claiming_winner_bets:
         notification.insert(0, Contract_type_1.objects().with_id(each))
     for bet in account_other.active_bet:
         bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
-    # dùng để nhét các document player tham gia kèo vào player_to_show []
-    for bet in bets_to_show:
-        # add tất cả các user account vào 1 list , làm thế này để list ko chứa quá nhiều thông tin thừa
-        clone_user_information(bet, users_involved_list)
-        #end
-def name_stuffing (party, users_involved_list):
-    for username in party:
-        if username not in users_involved_list:
-            users_involved_list.append(username)
-def clone_user_information (bet, users_involved_list):
-    name_stuffing(bet.contract_maker, users_involved_list)
-    name_stuffing(bet.party_left, users_involved_list)
-    name_stuffing(bet.party_right, users_involved_list)
-    name_stuffing(bet.party_left_pending, users_involved_list)
-    name_stuffing(bet.party_multiplayers, users_involved_list)
-    name_stuffing(bet.party_multiplayers_pending, users_involved_list)
-    name_stuffing(bet.spectator, users_involved_list)
-    for comment in bet.comments:
-        if comment['username'] not in users_involved_list:
-            users_involved_list.append(comment['username'])
+
 
 
 @app.route('/facepage/<username_url>', methods=['GET','POST'])
@@ -203,6 +173,11 @@ def unearned_lost_bet(username_url):
     for each in account.other_claiming_winner_bets:
         notification.insert(0, Contract_type_1.objects().with_id(each))
     bets_to_show = []
+    for bet in bets_to_show:
+        if bet.dates != "":
+            bet_dates = datetime.datetime.strptime(bet.dates, "%m/%d/%Y %I:%M %p")
+            if bet_dates <  var_now:
+                bet.update(control = 'out of date')
     for each in account_other.lost_bet:
         bets_to_show.insert(0, Contract_type_1.objects().with_id(each))
     if request.method == "GET":
@@ -229,40 +204,46 @@ def profile(username_url):
     account_other = Account.objects.get(username = username_url)
     bets_to_show = []
     notification =[]
-    users_involved_list = []
-    call_element_include(notification, account, users_involved_list, account_other, bets_to_show)
-    players_to_show = []
-    for username_each in users_involved_list:
-            players_to_show.append(Account.objects.get(username = username_each))
-    # xong
-    lost_bets_to_show = []
-    for bet in account_other.lost_bet:
-        lost_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
-    win_bets_to_show = []
-    for bet in account_other.win_bet:
-        win_bets_to_show.insert(0, Contract_type_1.objects().with_id(bet))
+    call_element_include(notification, account, account_other, bets_to_show)
+    var_now = datetime.datetime.now()
+    for bet in bets_to_show:
+        if bet.dates != "":
+            bet_dates = datetime.datetime.strptime(bet.dates, "%m/%d/%Y %I:%M %p")
+            if bet_dates <  var_now:
+                bet.update(control = 'out of date')
     bets_invited = []
     for bet in account_other.bet_spectator:
         bets_invited.insert(0, Contract_type_1.objects().with_id(bet))
     return render_template('profile.html',  account = account,
                                             account_other = account_other,
-                                            username = username,
-                                            username_url = username_url,
                                             bets_to_show = bets_to_show,
-                                            players_to_show = players_to_show,
-                                            lost_bets_to_show = lost_bets_to_show,
-                                            win_bets_to_show = win_bets_to_show,
                                             hints = hints,
                                             notification = notification,
                                             bets_invited = bets_invited)
 
 
-
-
-
-
-
-
+@app.route('/active.bet/<bet_id>', methods=['GET','POST'])
+def active_bet(bet_id):
+    hints = Account.objects()
+    username = session['username']
+    account = Account.objects.get(username = username)
+    bet = Contract_type_1.objects().with_id(bet_id)
+    hints = hints
+    notification =[]
+    var_now = datetime.datetime.now()
+    if bet.dates != "":
+        bet_dates = datetime.datetime.strptime(bet.dates, "%m/%d/%Y %I:%M %p")
+        if bet_dates <  var_now:
+            bet.update(control = 'out of date')
+    for each in account.pending_bet:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
+    for each in account.other_claiming_winner_bets:
+        notification.insert(0, Contract_type_1.objects().with_id(each))
+        players_to_show.append(Account.objects().get(username = username))
+    return render_template('active_bet.html',   account = account,
+                                                bet = bet,
+                                                hints =hints,
+                                                notification = notification)
 
 
 @app.route('/delete.follow/<bet_id>/<username>', methods=['GET','POST'])
@@ -383,12 +364,7 @@ def contract_type_1(contract_class):
             account.update(pull__pending_bet = str(contract_type_1.id))
             url = '/profile/' + username
             return redirect(url)
-        #
-        # for player in party_left and party_right:
-        #     player_pending_bet = Account.objects.get(username = player)
-        #     player_pending_bet.update(add_to_set__pending_bet = Contract_type_1.id)
-        # account.update(add_to_set__friend_request_sent = account_other.username)
-        # account_other.update(add_to_set__friend_accept_pending = account.username)
+
 
 
 @app.route('/bet.request/<method>/<bet_id>', methods=['GET','POST'])
@@ -565,30 +541,7 @@ def check_victory_2(bet_id, number_of_winner):
     return redirect(url)
 
 
-@app.route('/active.bet/<bet_id>', methods=['GET','POST'])
-def active_bet(bet_id):
-    hints = Account.objects()
-    username = session['username']
-    account = Account.objects.get(username = username)
-    bet = Contract_type_1.objects().with_id(bet_id)
-    hints = hints
-    notification =[]
-    for each in account.pending_bet:
-        notification.insert(0, Contract_type_1.objects().with_id(each))
-    for each in account.other_claiming_winner_bets:
-        notification.insert(0, Contract_type_1.objects().with_id(each))
-    # nhồi tên
-    users_involved_list = []
-    clone_user_information(bet, users_involved_list)
-    #
-    players_to_show = []
-    for username in users_involved_list:
-        players_to_show.append(Account.objects().get(username = username))
-    return render_template('active_bet.html',   account = account,
-                                                players_to_show = players_to_show,
-                                                bet = bet,
-                                                hints =hints,
-                                                notification = notification)
+
 
 
 
@@ -676,26 +629,10 @@ def friend_request_method(method, username_url):
     url_self = '/friend.list/' + username
     if method == "delete.friend":
         account.update(pull__friendlist = account_other.username)
-        account_other.update(pull__friendlist = account.username)
-        return redirect(url)
-    elif method == "cancel":
-        account.update(pull__friend_request_sent = account_other.username)
-        account_other.update(pull__friend_accept_pending = account.username)
         return redirect(url)
     elif method == "accept":
         account.update(add_to_set__friendlist = account_other.username)
-        account.update(pull__friend_accept_pending = account_other.username)
-        account_other.update(add_to_set__friendlist = account.username)
-        account_other.update(pull__friend_request_sent = account.username)
         account_other.update(add_to_set__friend_accepted = account.username)
-        return redirect(url_self)
-    elif method == "send.request":
-        account.update(add_to_set__friend_request_sent = account_other.username)
-        account_other.update(add_to_set__friend_accept_pending = account.username)
-        return redirect(url)
-    elif method == "decline":
-        account.update(pull__friend_accept_pending = account_other.username)
-        account_other.update(pull__friend_request_sent = account.username)
         return redirect(url)
     elif method == "clear":
         account.update(pull__friend_accepted = account_other.username)
