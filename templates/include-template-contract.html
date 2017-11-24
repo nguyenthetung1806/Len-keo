@@ -24,27 +24,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/css/bootstrap-datetimepicker.min.css">
 
 
-    <script type="text/javascript">
 
-      // Hàm để disable và enable, không cho một người một lúc hai cửa
-      // Ngoài cái javascript này ra thì em chỉ thay đổi ở các dòng: 79, 103, 119, 150 và 166 thôi
-      // Nhớ là viết KHÔNG SAI MỘT CHỮ!!!
-
-      function _checkTime(){
-        var datetime = document.getElementById('dates').value;
-        var date = new Date(datetime).getTime();
-        var now = new Date().getTime();
-        var distance = date - now;
-        if (distance <= 0) {
-          alert("Không được phép chọn thời gian trước thời điểm hiện tại!");
-          return false;
-        }
-        else {
-          return true;
-        }
-
-      }
-    </script>
   </head>
   <body>
 
@@ -90,7 +70,7 @@
             <div class="col p-0">
               <div class="form-group mb-1">
                 <div class='input-group date' id='datetimepicker1'>
-                  <input id="dates" name="dates" type='text' placeholder="mm/dd/yyyy h:m(AM/PM)" class="form-control" />
+                  <input id="dates" name="dates" type='text' placeholder="mm/dd/yyyy h:m(AM/PM)" class="form-control"/>
                     <span class="input-group-addon">
                       <span class="fa fa-calendar" id="pick_"></span>
                     </span>

@@ -35,7 +35,13 @@
               {% else %}
               text-light
               {% endif %}
-             font-size-lg m-0 mr-4">Các kèo đang hoạt động</h3>
+             font-size-lg m-0 mr-4">
+             {% if account.username == account_other.username %}
+             Các kèo đang hoạt động
+             {% else %}
+             Kèo chung với người này:
+             {% endif %}
+           </h3>
           </div>
 
       <!-- ádasssssssssssssssssssssssssssssssssssssssssss -->
@@ -49,6 +55,7 @@
             <a class="text-success" href="/contract.type.1/traditional">
               <h3 style="font-size:30px;"class="btn btn-lg font-weight-bold mb-0">Lên kèo????</h3>
             </a>
+            <br><br><br><br><br>
           </div>
 
 <!-- search bar -->
@@ -63,6 +70,7 @@
                 <p class="mb-1 font-weight-bold">Hiện tại người dùng này không có kèo nào đang hoạt động.</p>
               </div>
             </div>
+            <br><br><br><br><br>
           </div>
             {% endif %}
           {% else %}
@@ -101,35 +109,35 @@
                 <!-- bet traditional -->
                 <p style="font-size: 15px" class=" m-0 p-0 ml-3 ">
                   <!-- các cửa -->
-                  <span class="text-dark font-weight-bold">Cửa trên:</span>
+                  <span style="font-size: 15px" class="text-dark font-weight-bold">Cửa trên:</span>
                   {% for player_right in bet.party_right %}
-                    {% for player_render in hints %}
-                      {% if player_render.username == player_right %}
+                    {% for hint in hints %}
+                      {% if hint.username == player_right %}
                     <span>
                       <a href="/profile/{{ player_right }}">
-                        {% if player_render.image is none %}
+                        {% if hint.image is none %}
                         <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
                         {% else %}
-                        <img class=" rounded-circle" src="data:image/*;base64,{{player_render.image}}" height="20px" width="20px" alt="">
+                        <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                         {% endif %}
-                        {{ player_render.name }}
+                        {{ hint.name }}
                       </a>
                     </span>
                       {% endif %}
                     {% endfor %}
-                  {% endfor %}
-                  <span class="text-dark font-weight-bold">Cửa dưới:</span>
+                  {% endfor %} <br>
+                  <span style="font-size: 14px" class="text-dark font-weight-bold">Cửa dưới:</span>
                   {% for player_left in bet.party_left %}
-                    {% for player_render in hints %}
-                      {% if player_render.username == player_left %}
-                    <span>
-                      <a href="/profile/{{ player_left }}">
-                        {% if player_render.image is none %}
+                    {% for hint in hints %}
+                      {% if hint.username == player_left %}
+                    <span style="font-size: 14px">
+                      <a style="font-size: 14px" href="/profile/{{ player_left }}">
+                        {% if hint.image is none %}
                         <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
                         {% else %}
-                        <img class=" rounded-circle" src="data:image/*;base64,{{player_render.image}}" height="20px" width="20px" alt="">
+                        <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                         {% endif %}
-                        {{ player_render.name }}
+                        {{ hint.name }}
                       </a>
                     </span>
                       {% endif %}
@@ -143,16 +151,16 @@
                 <p style="font-size: 15px" class=" m-0 p-0 ml-3 ">
                   <span class="text-dark font-weight-bold">Các bên tham gia:</span>
                 {% for player_multiparty in bet.party_multiplayers %}
-                  {% for player_render in hints %}
-                    {% if player_render.username == player_multiparty %}
+                  {% for hint in hints %}
+                    {% if hint.username == player_multiparty %}
                   <span>
                     <a href="/profile/{{ player_multiparty }}">
-                        {% if player_render.image is none %}
+                        {% if hint.image is none %}
                       <img class=" rounded-circle" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="20px" width="20px" alt="">
                         {% else %}
-                      <img class=" rounded-circle" src="data:image/*;base64,{{player_render.image}}" height="20px" width="20px" alt="">
+                      <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                         {% endif %}
-                        {{ player_render.name }}
+                        {{ hint.name }}
                     </a>
                   </span>
                     {%  endif %}
@@ -176,7 +184,13 @@
                       {% else %}
                       <img class=" rounded-circle" src="data:image/*;base64,{{hint.image}}" height="20px" width="20px" alt="">
                       {% endif %}
-                      <span class="text-secondary">{{ hint.name }}</span>
+                      <span class="text-secondary">{{ hint.name }}
+                        {% if hint.username in bet.party_right_pending %}
+                         (cửa trên)
+                        {% else %}
+                         (cửa dưới)
+                        {% endif %}
+                      </span>
                     </a>
                   </span>
                 <span>
@@ -223,9 +237,9 @@
                 {% if bet.party_multiplayers|length == 0 %}
                   {% if bet.party_left_pending|length * 2 <= bet.party_left|length and bet.party_right_pending|length * 2 <= bet.party_right|length %}
                     {% if bet.victory_claim|length == 0 %}
-              <span data-toggle="tooltip" data-placement="top" title="Tuyên bố với những người chơi khác là bạn đã thắng cuộc">
+              <span style="font-size:18px;" data-toggle="tooltip" data-placement="top" title="Tuyên bố với những người chơi khác là bạn đã thắng cuộc">
                 <a class="text-success font-weight-bold" href="/claim.victory/{{account.username}}/{{bet.id}}">
-                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
+                  <i class="fa fa-square-o" aria-hidden="true"></i>
                    Tuyên bố thắng cuộc
                  </a>
               </span>
@@ -244,8 +258,8 @@
                   {% if bet.party_multiplayers_pending|length <= bet.party_multiplayers|length %}
                     {% if bet.victory_claim|length == 0 %}
               <span data-toggle="tooltip" data-placement="top" title="Tuyên bố với những người chơi khác là bạn đã thắng cuộc">
-                <a class="text-success" href="/claim.victory/{{account.username}}/{{bet.id}}">
-                  <i class="fa fa-check-square-o" aria-hidden="true"></i>
+                <a style="font-size:18px;" class="text-success" href="/claim.victory/{{account.username}}/{{bet.id}}">
+                  <i class="fa fa-square-o" aria-hidden="true"></i>
                 </i> Tuyên bố thắng cuộc ( {{ bet.winner|length }} / {{ bet.number_of_winner }} )
                 </a>
               </span>
@@ -274,21 +288,21 @@
               {% if bet.comments|length != 0 %}
               <div class="border border-muted rounded mr-3 ml-4 mb-1 pb-1 pt-2 bg-white text-dark">
                 {% for player_comment in bet.comments %}
-                  {% for player_render in hints %}
-                    {% if player_render.username == player_comment['username'] %}
+                  {% for hint in hints %}
+                    {% if hint.username == player_comment['username'] %}
                 <div class="row m-0 p-0 pl-2 pr-1">
                   <div class="col-1 p-0 mt-1">
                     <a  href="/profile/{{ player_left }}">
-                        {% if player_render.image is none %}
+                        {% if hint.image is none %}
                       <img class=" rounded-circle border-success" src="https://www.frankfurt-airport.com/etc/clientlibs/fraport-airport/fraport.base.app/resources/img/fra_avatar.jpg" height="40px" width="40px" alt="">
                         {% else %}
-                      <img class=" rounded-circle border-success" src="data:image/*;base64,{{player_render.image}}" height="40px" width="40px" alt="">
+                      <img class=" rounded-circle border-success" src="data:image/*;base64,{{hint.image}}" height="40px" width="40px" alt="">
                         {% endif %}
                     </a>
                   </div>
                 <div class="col-11 pl-3">
                   <div class="text-left rounded border bg-light border-success m-0 mb-1 pl-3 pr-3">
-                    <a class="font-weight-bold text-dark" href="/profile/{{ player_left }}"> {{ player_render.name }} </a>
+                    <a class="font-weight-bold text-dark" href="/profile/{{ player_left }}"> {{ hint.name }} </a>
                     <p class="p-0 m-0">{{ player_comment['comment'] }}</p>
                   </div>
                 </div>
