@@ -40,10 +40,7 @@ def signup():
         if account is None:
             account = Account(name=name, password=password, username=username, email=email)
             account.save()
-            account = Account.objects.get(username=username)
-            session["username"] = account.username
-            url = "/profile/" + account.username
-            return redirect(url)
+            return redirect('/login')
         else:
             prompt=1
             return render_template('signup.html',prompt=prompt,usn=username,psw=password1,nm=name,eml=email)
@@ -242,15 +239,15 @@ def active_bet(bet_id):
     hints = hints
     notification =[]
     var_now = datetime.datetime.now()
-    if bet.dates != "":
-        bet_dates = datetime.datetime.strptime(bet.dates, "%m/%d/%Y %I:%M %p")
-        if bet_dates <  var_now:
-            bet.update(control = 'out of date')
+    if (len(bet.party_right_pending) + len(bet.party_right)) != 0 or (len(bet.party_left_pending) == 0 + len(bet.party_left)) != 0 :
+        if bet.dates != "":
+            bet_dates = datetime.datetime.strptime(bet.dates, "%m/%d/%Y %I:%M %p")
+            if bet_dates <  var_now:
+                bet.update(control = 'out of date')
     for each in account.pending_bet:
         notification.insert(0, Contract_type_1.objects().with_id(each))
     for each in account.other_claiming_winner_bets:
         notification.insert(0, Contract_type_1.objects().with_id(each))
-        players_to_show.append(Account.objects().get(username = username))
     return render_template('active_bet.html',   account = account,
                                                 bet = bet,
                                                 hints =hints,
@@ -378,8 +375,8 @@ def contract_type_1(contract_class):
 
 
 
-@app.route('/bet.request/<method>/<bet_id>', methods=['GET','POST'])
-def bet_request_method(method, bet_id):
+@app.route('/bet.request/<method>/<bet_id>/<redirect_link>', methods=['GET','POST'])
+def bet_request_method(method, bet_id, redirect_link):
     username = session['username']
     account = Account.objects.get(username = username)
     bet = Contract_type_1.objects.with_id(bet_id)
@@ -389,6 +386,9 @@ def bet_request_method(method, bet_id):
                 bet.update(pull__party_right_pending = account.username)
             elif username in bet.party_left_pending:
                 bet.update(pull__party_left_pending = account.username)
+            url = '/check.decline/' + username + '/' +bet_id
+            account.update(pull__pending_bet = bet_id)
+            return redirect(url)
         else:
             bet.update(pull__party_multiplayers_pending = account.username)
         account.update(pull__pending_bet = bet_id)
@@ -405,10 +405,42 @@ def bet_request_method(method, bet_id):
             bet.update(add_to_set__party_multiplayers = account.username)
         account.update(pull__pending_bet = bet_id)
         account.update(add_to_set__active_bet = bet_id)
+        if redirect_link == "profile":
+            url = '/profile/' + username
+        elif redirect_link == "active.bet":
+            url = '/active.bet/' + bet_id
+        return redirect(url)
+
+@app.route('/check.decline/<username>/<bet_id>', methods=['GET','POST'])
+def bet_decline_check(username, bet_id):
+    username = session['username']
+    account = Account.objects.get(username = username)
+    bet = Contract_type_1.objects.with_id(bet_id)
+    if (len(bet.party_right_pending) + len(bet.party_right)) == 0 or (len(bet.party_left_pending) == 0 + len(bet.party_left)) == 0 :
+        for account in bet.party_left:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__active_bet = bet_id)
+        for account in bet.party_left_pending:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__pending_bet = bet_id)
+        for account in bet.party_right:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__active_bet = bet_id)
+        for account in bet.party_right_pending:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__pending_bet = bet_id)
+        for account in bet.spectator:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__bet_spectator = bet_id)
+        for account in bet.party_multiplayers_pending:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__active_bet = bet_id)
+        for account in bet.party_multiplayers:
+            clone = Account.objects.get(username = account)
+            clone.update(pull__pending_bet = bet_id)
+        bet.delete()
     url = '/profile/' + username
     return redirect(url)
-
-
 
 @app.route('/claim.victory/<username>/<bet_id>', methods=['GET','POST'])
 def claim_victory(username, bet_id):
@@ -433,10 +465,10 @@ def claim_victory(username, bet_id):
             for name_2 in bet.party_multiplayers:
                 clone = Account.objects().get(username = name_2)
                 clone.update(add_to_set__other_claiming_winner_bets = str(bet_id))
-        url = '/profile/' + username
+        url = '/active.bet/' + bet_id
         return redirect(url)
     elif len(bet.victory_claim) != 0:
-        url = '/profile/' + username
+        url = '/active.bet/' + bet_id
         return redirect(url)
 
 
@@ -640,6 +672,7 @@ def friend_request_method(method, username_url):
     url_self = '/friend.list/' + username
     if method == "delete.friend":
         account.update(pull__friendlist = account_other.username)
+        account_other.update(pull__friend_accepted = account.username)
         return redirect(url)
     elif method == "accept":
         account.update(add_to_set__friendlist = account_other.username)
